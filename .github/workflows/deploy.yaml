@@ -1,39 +1,52 @@
 name: Deploy to GitHub Pages
 
+# 触发条件：当 main 分支有 push 操作时触发
 on:
   push:
     branches:
-      - main # 只有当 main 分支有更新时才触发
-  pull_request:
+      - main
+
+# 工作流权限设置
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  deploy:
-    name: Deploy to GitHub Pages
+  build-and-deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
     steps:
-      - name: Checkout your repository
-        uses: actions/checkout@v3
+      # 1. 检出代码
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Install Bun
+      # 2. 设置 Bun 环境
+      - name: Setup Bun 🍞
         uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest # 使用最新版的 bun
 
-      - name: Install dependencies
+      # 3. 安装依赖
+      # 使用 --frozen-lockfile 可以确保使用 lock 文件中的确切依赖版本，加快安装速度
+      - name: Install dependencies 📦
         run: bun install --frozen-lockfile
 
-      - name: Build Docusaurus website
+      # 4. 构建 Docusaurus 网站
+      - name: Build Docusaurus site 🔨
         run: bun run build
 
-      - name: 部署文档
-        uses: JamesIves/github-pages-deploy-action@v4.5.0
+      # 5. 配置 GitHub Pages
+      - name: Setup Pages ⚙️
+        uses: actions/configure-pages@v5
+      
+      # 6. 上传构建产物
+      - name: Upload artifact ⬆️
+        uses: actions/upload-pages-artifact@v3
         with:
-          # 部署文档
-          branch: gh-pages
-          folder: ./build
+          path: ./build # Docusaurus 构建输出的默认目录
+
+      # 7. 部署到 GitHub Pages
+      - name: Deploy to GitHub Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4
