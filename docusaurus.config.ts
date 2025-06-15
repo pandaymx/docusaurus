@@ -68,8 +68,14 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
-
+  markdown:{
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
+    mermaid: {
+      theme: {light: 'neutral', dark: 'forest'},
+    },
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
