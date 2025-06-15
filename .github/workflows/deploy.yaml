@@ -1,52 +1,48 @@
 name: Deploy to GitHub Pages
 
-# 触发条件：当 main 分支有 push 操作时触发
 on:
   push:
     branches:
       - main
-
-# 工作流权限设置
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    # Review gh actions docs if you want to further define triggers, paths, etc
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy
+  build:
+    name: Build Docusaurus
     runs-on: ubuntu-latest
     steps:
-      # 1. 检出代码
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
-
-      # 2. 设置 Bun 环境
-      - name: Setup Bun 🍞
-        uses: oven-sh/setup-bun@v1
+      - uses: actions/checkout@v4
         with:
-          bun-version: latest # 使用最新版的 bun
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
 
-      # 3. 安装依赖
-      # 使用 --frozen-lockfile 可以确保使用 lock 文件中的确切依赖版本，加快安装速度
       - name: Install dependencies 📦
         run: bun install --frozen-lockfile
-
-      # 4. 构建 Docusaurus 网站
       - name: Build Docusaurus site 🔨
         run: bun run build
 
-      # 5. 配置 GitHub Pages
-      - name: Setup Pages ⚙️
-        uses: actions/configure-pages@v5
-      
-      # 6. 上传构建产物
-      - name: Upload artifact ⬆️
+      - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build # Docusaurus 构建输出的默认目录
+          path: build
 
-      # 7. 部署到 GitHub Pages
-      - name: Deploy to GitHub Pages 🚀
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+
+    permissions:
+      pages: write 
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
