@@ -1,0 +1,36 @@
+name: Check Markdown Links
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**.md'
+      - 'docs/**.mdx'
+  workflow_dispatch:
+
+jobs:
+  markdown-link-check:
+    name: Check for broken links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Markdown Link Check
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          # 只检查 docs 目录下的 markdown 和 mdx 文件
+          folder-path: 'docs/'
+          file-extension: '.md,.mdx'
+
+          # 使用安静模式，只在出错时报告
+          use-quiet-mode: 'yes'
+
+          # 在 PR 中，只检查被修改过的文件，加快速度
+          check-modified-files-only: 'yes'
+          base-branch: 'main'
+
+          # 忽略本地链接和某些特定网站的链接
+          url-ignore-pattern: 'https?://localhost.*,https?://some-known-flaky-site.com.*'
+
+          # 有些网站会拒绝请求，可以忽略 403 错误
+          http-status-code-ignore: '403'
